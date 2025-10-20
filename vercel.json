@@ -9,20 +9,10 @@
   "regions": ["iad1"],
   "cleanUrls": true,
   "trailingSlash": false,
-  "env": {
-    "NEXT_PUBLIC_API_URL": {
-      "description": "Backend API URL from Render",
-      "required": true
-    },
-    "NEXT_PUBLIC_WS_URL": {
-      "description": "Backend WebSocket URL from Render",
-      "required": true
-    }
-  },
   "build": {
     "env": {
-      "NEXT_PUBLIC_API_URL": "@api_url",
-      "NEXT_PUBLIC_WS_URL": "@ws_url"
+      "NEXT_PUBLIC_API_URL": "https://boom2511-deepfake-detection.hf.space",
+      "NEXT_PUBLIC_WS_URL": "wss://boom2511-deepfake-detection.hf.space"
     }
   },
   "headers": [
