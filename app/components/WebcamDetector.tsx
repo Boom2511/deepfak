@@ -55,8 +55,9 @@ export default function WebcamDetector() {
         captureAndSendFrame();
       }, 2000); // Send frame every 2 seconds
 
-    } catch (err: any) {
-      setError(`Failed to access webcam: ${err.message}`);
+    } catch (err: unknown) { // Changed 'any' to 'unknown' for type safety
+      const message = err instanceof Error ? err.message : String(err);
+      setError(`Failed to access webcam: ${message}`);
     }
   };
 
@@ -217,7 +218,7 @@ export default function WebcamDetector() {
               <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
                 <div className="text-center text-gray-400">
                   <Camera className="w-16 h-16 mx-auto mb-3 opacity-50" />
-                  <p>Click "Start Webcam" to begin</p>
+                  <p>Click &quot;Start Webcam&quot; to begin</p>
                 </div>
               </div>
             )}

@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Upload, Video, Loader, CheckCircle, XCircle, Clock, Film, BarChart3, AlertCircle } from 'lucide-react';
+import Image from 'next/image'; // Import the Next.js Image component
+import { Upload, Video, Loader, CheckCircle, Film, BarChart3, AlertCircle } from 'lucide-react';
 
 interface VideoResult {
   video_info: {
@@ -90,8 +91,9 @@ export default function VideoUploader() {
       const data = await response.json();
       setResult(data);
 
-    } catch (err: any) {
-      setError(err.message || 'An error occurred during video processing');
+    } catch (err: unknown) { // Changed 'any' to 'unknown' for type safety
+      const message = err instanceof Error ? err.message : 'An error occurred during video processing';
+      setError(message);
     } finally {
       setIsUploading(false);
     }
@@ -239,9 +241,11 @@ export default function VideoUploader() {
                     </div>
                   </div>
                   {frame.gradcam && (
-                    <img
+                    <Image
                       src={frame.gradcam}
                       alt={`Frame ${frame.frame_number} heatmap`}
+                      width={300} // Added width prop
+                      height={300} // Added height prop
                       className="w-full rounded-lg shadow"
                     />
                   )}

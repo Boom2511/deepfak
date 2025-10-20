@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image'; // Import the Next.js Image component
 import { Zap, Eye } from 'lucide-react';
 
 interface HeatmapViewerProps {
@@ -31,9 +32,11 @@ export default function HeatmapViewer({ originalImage, heatmapImage, isFake }: H
         }`}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-0 bg-gray-900">
             <div className="relative">
-              <img
+              <Image
                 src={originalImage}
                 alt="Original"
+                width={500} // Added width prop
+                height={500} // Added height prop
                 className="w-full h-auto object-contain"
               />
               <div className="absolute top-2 left-2 px-3 py-1 bg-black bg-opacity-70 text-white text-xs font-medium rounded">
@@ -41,9 +44,11 @@ export default function HeatmapViewer({ originalImage, heatmapImage, isFake }: H
               </div>
             </div>
             <div className="relative">
-              <img
+              <Image
                 src={heatmapImage}
                 alt="Heatmap"
+                width={500} // Added width prop
+                height={500} // Added height prop
                 className="w-full h-auto object-contain"
               />
               <div className="absolute top-2 left-2 px-3 py-1 bg-black bg-opacity-70 text-white text-xs font-medium rounded">
@@ -102,8 +107,8 @@ export default function HeatmapViewer({ originalImage, heatmapImage, isFake }: H
               </h4>
               <div className="text-sm text-gray-700 space-y-2">
                 <p>
-                  <strong>What you're seeing:</strong> This Grad-CAM (Gradient-weighted Class Activation Mapping)
-                  visualization shows which regions of the image were most influential in the AI's decision.
+                  <strong>What you&apos;re seeing:</strong> This Grad-CAM (Gradient-weighted Class Activation Mapping)
+                  visualization shows which regions of the image were most influential in the AI&apos;s decision.
                 </p>
                 {isFake ? (
                   <>
@@ -123,13 +128,13 @@ export default function HeatmapViewer({ originalImage, heatmapImage, isFake }: H
                       authentic imagery. Attention is distributed normally across facial features.
                     </p>
                     <p>
-                      <strong>What's normal:</strong> Authentic photos typically show even distribution
+                      <strong>What&apos;s normal:</strong> Authentic photos typically show even distribution
                       with slight emphasis on eyes, mouth, and edges - which is what we see here.
                     </p>
                   </>
                 )}
                 <p className="pt-2 border-t border-gray-300">
-                  <strong>Note:</strong> This is a visual aid to understand the AI's reasoning.
+                  <strong>Note:</strong> This is a visual aid to understand the AI&apos;s reasoning.
                   The final prediction combines analysis from multiple models and factors.
                 </p>
               </div>
