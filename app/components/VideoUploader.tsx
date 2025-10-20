@@ -76,7 +76,7 @@ export default function VideoUploader() {
         setProgress(prev => Math.min(prev + 5, 90));
       }, 500);
 
-      const response = await fetch('http://localhost:8000/api/video/detect', {
+      const response = await fetch('https://boom2511-deepfake-detection.hf.space', {
         method: 'POST',
         body: formData,
       });
