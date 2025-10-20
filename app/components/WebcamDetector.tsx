@@ -85,7 +85,7 @@ export default function WebcamDetector() {
   };
 
   const connectWebSocket = () => {
-    const ws = new WebSocket('ws://localhost:8000/api/video/ws/webcam');
+    const ws = new WebSocket('https://boom2511-deepfake-detection.hf.space');
 
     ws.onopen = () => {
       console.log('WebSocket connected');
