@@ -60,7 +60,7 @@ export default function ProductionUploader({ onResult }: UploaderProps) {
         setProgress(prev => Math.min(prev + 10, 90));
       }, 200);
 
-      const response = await fetch('https://boom2511-deepfake-detection.hf.space', {
+      const response = await fetch('https://boom2511-deepfake-detection.hf.space/api/detect/image', {
         method: 'POST',
         body: formData,
       });
