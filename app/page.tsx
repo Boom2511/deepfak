@@ -130,7 +130,7 @@ export default function Home() {
         }, 200);
 
         const startTime = Date.now();
-        const response = await fetch('http://localhost:8000/api/detect/image', {
+        const response = await fetch('https://boom2511-deepfake-detection.hf.space', {
           method: 'POST',
           body: formData,
         });
