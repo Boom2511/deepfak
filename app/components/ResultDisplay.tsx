@@ -5,11 +5,32 @@ import { AlertTriangle, CheckCircle, Eye, Shield, ClipboardList } from 'lucide-r
 import HeatmapViewer from './HeatmapViewer';
 import ConfidenceExplainer from './ConfidenceExplainer';
 import QualityWarnings from './QualityWarnings';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface ModelPrediction {
   fake_prob: number;
   real_prob: number;
   prediction: string;
+}
+
+interface HeatmapAnalysis {
+  is_fake: boolean;
+  regions: any[];
+  suspicious_regions: any[];
+  top_3_regions: any[];
+  explanation: {
+    summary_th: string;
+    summary_en: string;
+    details_th: string[];
+    specific_explanation: string;
+  };
+  hotspot: {
+    x: number;
+    y: number;
+    value: number;
+  };
+  overall_attention: number;
+  max_attention_value: number;
 }
 
 interface DetectionResult {
@@ -21,6 +42,7 @@ interface DetectionResult {
   processing_time?: number;
   face_detected?: boolean;
   gradcam?: string;
+  heatmap_analysis?: HeatmapAnalysis | null;
   model_predictions?: Record<string, ModelPrediction>;
   original_image?: string;
   error?: string;
@@ -32,6 +54,7 @@ interface ResultDisplayProps {
 }
 
 export default function ResultDisplay({ result, onReset }: ResultDisplayProps) {
+  const { t } = useLanguage();
   const [showDetails, setShowDetails] = useState(false);
 
   if (result.error) {
@@ -41,7 +64,7 @@ export default function ResultDisplay({ result, onReset }: ResultDisplayProps) {
           <div className="flex items-center gap-4 mb-4">
             <AlertTriangle className="w-8 h-8 text-red-600" />
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Detection Error</h2>
+              <h2 className="text-2xl font-bold text-gray-900">{t('result.error_title')}</h2>
               <p className="text-gray-600 mt-1">{result.error}</p>
             </div>
           </div>
@@ -49,7 +72,7 @@ export default function ResultDisplay({ result, onReset }: ResultDisplayProps) {
             onClick={onReset}
             className="mt-4 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg"
           >
-            ← Try Another Image
+            ← {t('result.try_another')}
           </button>
         </div>
       </div>
@@ -60,14 +83,14 @@ export default function ResultDisplay({ result, onReset }: ResultDisplayProps) {
   const confidencePercent = result.confidence * 100;
 
   const getConfidenceLevel = (confidence: number) => {
-    if (confidence >= 0.8) return { label: 'High', color: 'text-red-600', bg: 'bg-red-500', borderColor: 'border-red-500' };
-    if (confidence >= 0.6) return { label: 'Medium', color: 'text-orange-600', bg: 'bg-orange-500', borderColor: 'border-orange-500' };
-    return { label: 'Low', color: 'text-yellow-600', bg: 'bg-yellow-500', borderColor: 'border-yellow-500' };
+    if (confidence >= 0.8) return { label: t('result.confidence.high'), color: 'text-red-600', bg: 'bg-red-500', borderColor: 'border-red-500' };
+    if (confidence >= 0.6) return { label: t('result.confidence.medium'), color: 'text-orange-600', bg: 'bg-orange-500', borderColor: 'border-orange-500' };
+    return { label: t('result.confidence.low'), color: 'text-yellow-600', bg: 'bg-yellow-500', borderColor: 'border-yellow-500' };
   };
 
   const confidenceLevel = isFake
     ? getConfidenceLevel(result.confidence)
-    : { label: 'Authentic', color: 'text-green-600', bg: 'bg-green-500', borderColor: 'border-green-500' };
+    : { label: t('result.confidence.authentic'), color: 'text-green-600', bg: 'bg-green-500', borderColor: 'border-green-500' };
 
   // Calculate reliability score based on model agreement
   const calculateReliability = () => {
@@ -87,7 +110,7 @@ export default function ResultDisplay({ result, onReset }: ResultDisplayProps) {
         onClick={onReset}
         className="px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg"
       >
-        ← Analyze Another Image
+        ← {t('result.analyze_another')}
       </button>
 
       {/* Main Result Card */}
@@ -104,24 +127,24 @@ export default function ResultDisplay({ result, onReset }: ResultDisplayProps) {
               </div>
               <div>
                 <h2 className="text-lg sm:text-2xl font-bold text-gray-900">
-                  {isFake ? 'Likely Deepfake Detected' : 'Appears Authentic'}
+                  {isFake ? t('result.fake') : t('result.real')}
                 </h2>
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-2">
                   <span className={`text-2xl sm:text-3xl font-bold ${confidenceLevel.color}`}>
                     {Math.round(confidencePercent)}%
                   </span>
-                  <span className="text-xs sm:text-sm text-gray-500">confidence</span>
+                  <span className="text-xs sm:text-sm text-gray-500">{t('result.confidence')}</span>
                   <span className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-medium ${
                     isFake ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
                   }`}>
-                    {confidenceLevel.label.toUpperCase()} CONFIDENCE
+                    {confidenceLevel.label.toUpperCase()} {t('result.confidence').toUpperCase()}
                   </span>
                 </div>
               </div>
             </div>
             {result.processing_time && (
               <div className="text-right">
-                <div className="text-sm text-gray-500">Processed in</div>
+                <div className="text-sm text-gray-500">{t('result.processed_in')}</div>
                 <div className="text-xl font-semibold text-gray-900">{result.processing_time.toFixed(1)}s</div>
               </div>
             )}
@@ -130,8 +153,8 @@ export default function ResultDisplay({ result, onReset }: ResultDisplayProps) {
           {/* Confidence Bar */}
           <div className="mb-6">
             <div className="flex justify-between text-sm text-gray-600 mb-2">
-              <span>REAL</span>
-              <span>FAKE</span>
+              <span>{t('result.real').toUpperCase()}</span>
+              <span>{t('result.fake').toUpperCase()}</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-4 relative overflow-hidden">
               <div
@@ -144,8 +167,8 @@ export default function ResultDisplay({ result, onReset }: ResultDisplayProps) {
               />
             </div>
             <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>{(result.real_probability * 100).toFixed(1)}% Real</span>
-              <span>{(result.fake_probability * 100).toFixed(1)}% Fake</span>
+              <span>{(result.real_probability * 100).toFixed(1)}% {t('result.real')}</span>
+              <span>{(result.fake_probability * 100).toFixed(1)}% {t('result.fake')}</span>
             </div>
           </div>
 
@@ -154,7 +177,7 @@ export default function ResultDisplay({ result, onReset }: ResultDisplayProps) {
             <div className="bg-red-50 rounded-lg p-5 mb-6 border border-red-100">
               <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <Eye className="w-5 h-5 text-red-600" />
-                Key Manipulation Indicators
+                {t('result.indicators.title')}
               </h3>
               <div className="space-y-3">
                 {result.confidence >= 0.8 && (
@@ -214,7 +237,7 @@ export default function ResultDisplay({ result, onReset }: ResultDisplayProps) {
             <div className="bg-blue-50 rounded-lg p-5 border border-blue-100 mb-6">
               <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <Shield className="w-5 h-5 text-blue-600" />
-                Model Consensus
+                {t('result.consensus.title')}
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {Object.entries(result.model_predictions).map(([model, prediction]) => (
@@ -252,6 +275,7 @@ export default function ResultDisplay({ result, onReset }: ResultDisplayProps) {
           originalImage={result.original_image}
           heatmapImage={result.gradcam}
           isFake={isFake}
+          heatmapAnalysis={result.heatmap_analysis}
         />
       )}
 
@@ -269,21 +293,19 @@ export default function ResultDisplay({ result, onReset }: ResultDisplayProps) {
       } rounded-xl shadow-lg p-6 border`}>
         <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <ClipboardList className="w-5 h-5" />
-          What to do next
+          {t('result.next.title')}
         </h3>
         {isFake ? (
           <div className="space-y-2 text-sm text-gray-700">
-            <div>• <strong>Verify Source:</strong> Cross-reference with known authentic footage or images</div>
-            <div>• <strong>Further Analysis:</strong> Check metadata, creation timestamp, and file history</div>
-            <div>• <strong>Expert Review:</strong> For critical decisions, request professional forensic analysis</div>
-            <div>• <strong>Document:</strong> Save this report and maintain chain of custody for evidence</div>
+            <div>• {t('result.next.fake.verify')}</div>
+            <div>• {t('result.next.fake.multiple')}</div>
+            <div>• {t('result.next.fake.heatmap')}</div>
           </div>
         ) : (
           <div className="space-y-2 text-sm text-gray-700">
-            <div>• <strong>Appears Authentic:</strong> No significant manipulation detected by our AI models</div>
-            <div>• <strong>Always Verify:</strong> Cross-check with trusted sources for important content</div>
-            <div>• <strong>Context Matters:</strong> Consider the source and context of the image</div>
-            <div>• <strong>Stay Vigilant:</strong> AI-generated content is constantly improving</div>
+            <div>• {t('result.next.real.caution')}</div>
+            <div>• {t('result.next.real.verify')}</div>
+            <div>• {t('result.next.real.advanced')}</div>
           </div>
         )}
       </div>

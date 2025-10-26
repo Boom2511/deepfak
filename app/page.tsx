@@ -7,6 +7,8 @@ import ResultDisplay from './components/ResultDisplay';
 import UploadAssistant from './components/UploadAssistant';
 import VideoUploader from './components/VideoUploader';
 import WebcamDetector from './components/WebcamDetector';
+import LanguageSwitcher from './components/LanguageSwitcher';
+import { useLanguage } from './contexts/LanguageContext';
 
 interface ModelPrediction {
   fake_prob: number;
@@ -61,6 +63,7 @@ interface BatchDetectionResult {
 type AnalysisMode = 'single' | 'batch' | 'video' | 'webcam';
 
 export default function Home() {
+  const { t } = useLanguage();
   const [mode, setMode] = useState<AnalysisMode>('single');
   const [result, setResult] = useState<DetectionResult | null>(null);
 
@@ -230,32 +233,51 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+      {/* Language Switcher - Fixed Top Right */}
+      <div className="fixed top-4 right-4 z-50">
+        <LanguageSwitcher />
+      </div>
+
       {/* Header */}
       <header className="text-center py-6 sm:py-12 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
             <Search className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 text-blue-600 flex-shrink-0" />
             <h1 className="text-2xl sm:text-4xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent leading-tight">
-              DeepFake Detector Pro
+              {t('app.page_title')}
             </h1>
           </div>
           <p className="text-sm sm:text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed px-2">
-            Advanced AI-powered deepfake detection using state-of-the-art deep learning models.
-            Upload any image to detect AI-generated or manipulated content with high accuracy.
+            {t('app.description')}
           </p>
           <div className="mt-4 sm:mt-6 flex flex-wrap justify-center gap-2 sm:gap-4 text-xs sm:text-sm px-2">
-            <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-green-50 text-green-700 rounded-lg border border-green-200 flex items-center gap-1.5 sm:gap-2">
-              <Shield className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-              <span className="font-medium">94%+ Accuracy</span>
-            </span>
-            <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-50 text-blue-700 rounded-lg border border-blue-200 flex items-center gap-1.5 sm:gap-2">
-              <Zap className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-              <span className="font-medium whitespace-nowrap">Real-time</span>
-            </span>
-            <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-purple-50 text-purple-700 rounded-lg border border-purple-200 flex items-center gap-1.5 sm:gap-2">
-              <Brain className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-              <span className="font-medium">AI Explain</span>
-            </span>
+            <div className="px-3 sm:px-4 py-1.5 sm:py-2 bg-green-50 text-green-700 rounded-lg border border-green-200">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <Shield className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                <div className="flex flex-col">
+                  <span className="font-medium">{t('app.badge.accuracy')}</span>
+                  <span className="text-xs text-green-600">{t('app.badge.accuracy.desc')}</span>
+                </div>
+              </div>
+            </div>
+            <div className="px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-50 text-blue-700 rounded-lg border border-blue-200">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <Zap className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                <div className="flex flex-col">
+                  <span className="font-medium whitespace-nowrap">{t('app.badge.realtime')}</span>
+                  <span className="text-xs text-blue-600">{t('app.badge.realtime.desc')}</span>
+                </div>
+              </div>
+            </div>
+            <div className="px-3 sm:px-4 py-1.5 sm:py-2 bg-purple-50 text-purple-700 rounded-lg border border-purple-200">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <Brain className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                <div className="flex flex-col">
+                  <span className="font-medium">{t('app.badge.explain')}</span>
+                  <span className="text-xs text-purple-600">{t('app.badge.explain.desc')}</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Mode Tabs - Mobile Optimized */}
@@ -270,7 +292,7 @@ export default function Home() {
                 }`}
               >
                 <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                <span>Image</span>
+                <span>{t('mode.image')}</span>
               </button>
               <button
                 onClick={() => handleModeChange('batch')}
@@ -281,7 +303,7 @@ export default function Home() {
                 }`}
               >
                 <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                <span>Batch</span>
+                <span>{t('mode.batch')}</span>
               </button>
               <button
                 onClick={() => handleModeChange('video')}
@@ -292,18 +314,19 @@ export default function Home() {
                 }`}
               >
                 <Video className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                <span>Video</span>
+                <span>{t('mode.video')}</span>
               </button>
               <button
-                onClick={() => handleModeChange('webcam')}
-                className={`px-3 sm:px-5 py-2 sm:py-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-1.5 sm:gap-2 text-sm sm:text-base ${
-                  mode === 'webcam'
-                    ? 'bg-gradient-to-r from-green-600 to-teal-600 text-white shadow-md'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
+                disabled
+                className="px-3 sm:px-5 py-2 sm:py-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-1.5 sm:gap-2 text-sm sm:text-base bg-gray-100 text-gray-400 cursor-not-allowed relative group"
+                title={t('mode.locked')}
               >
+                <Lock className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                 <Camera className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                <span>Webcam</span>
+                <span>{t('mode.webcam')}</span>
+                <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                  {t('mode.locked')}
+                </span>
               </button>
             </div>
           </div>
@@ -325,9 +348,6 @@ export default function Home() {
         ) : mode === 'video' ? (
           // Video Mode
           <VideoUploader />
-        ) : mode === 'webcam' ? (
-          // Webcam Mode
-          <WebcamDetector />
         ) : (
           // Batch Mode
           <div className="max-w-7xl mx-auto space-y-6">
@@ -346,14 +366,14 @@ export default function Home() {
                 <label htmlFor="file-upload" className={`cursor-pointer ${(files.length >= 10 || processing) ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   <Upload className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                   <div className="text-lg font-semibold text-gray-900 mb-2">
-                    Drop images here or click to upload
+                    {t('batch.upload.title')}
                   </div>
                   <div className="text-sm text-gray-500">
-                    Supports JPG, PNG • Max 10 files • 10MB per file
+                    {t('batch.upload.subtitle')}
                   </div>
                   <div className="mt-4">
                     <span className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 inline-block">
-                      Select Files
+                      {t('batch.upload.button')}
                     </span>
                   </div>
                 </label>
@@ -361,8 +381,8 @@ export default function Home() {
 
               {files.length > 0 && (
                 <div className="mt-4 text-sm text-gray-600">
-                  {files.length} / 10 files uploaded
-                  {files.length >= 10 && <span className="text-orange-600 ml-2">(Maximum reached)</span>}
+                  {files.length} / 10 {t('batch.upload.count')}
+                  {files.length >= 10 && <span className="text-orange-600 ml-2">{t('batch.upload.max')}</span>}
                 </div>
               )}
             </div>
@@ -371,23 +391,23 @@ export default function Home() {
             {files.length > 0 && (
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 <div className="bg-white rounded-lg shadow p-4">
-                  <div className="text-sm text-gray-600 mb-1">Total Files</div>
+                  <div className="text-sm text-gray-600 mb-1">{t('batch.stats.total')}</div>
                   <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
                 </div>
                 <div className="bg-green-50 rounded-lg shadow p-4">
-                  <div className="text-sm text-green-600 mb-1">Completed</div>
+                  <div className="text-sm text-green-600 mb-1">{t('batch.stats.completed')}</div>
                   <div className="text-2xl font-bold text-green-700">{stats.completed}</div>
                 </div>
                 <div className="bg-blue-50 rounded-lg shadow p-4">
-                  <div className="text-sm text-blue-600 mb-1">Processing</div>
+                  <div className="text-sm text-blue-600 mb-1">{t('batch.stats.processing')}</div>
                   <div className="text-2xl font-bold text-blue-700">{stats.processing}</div>
                 </div>
                 <div className="bg-red-50 rounded-lg shadow p-4">
-                  <div className="text-sm text-red-600 mb-1">Fake Detected</div>
+                  <div className="text-sm text-red-600 mb-1">{t('batch.stats.fake')}</div>
                   <div className="text-2xl font-bold text-red-700">{stats.fake}</div>
                 </div>
                 <div className="bg-green-50 rounded-lg shadow p-4">
-                  <div className="text-sm text-green-600 mb-1">Real</div>
+                  <div className="text-sm text-green-600 mb-1">{t('batch.stats.real')}</div>
                   <div className="text-2xl font-bold text-green-700">{stats.real}</div>
                 </div>
               </div>
@@ -398,14 +418,14 @@ export default function Home() {
               <div className="bg-white rounded-xl shadow-lg overflow-hidden">
                 <div className="p-6 border-b bg-gray-50">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-bold text-gray-900">Files Queue</h2>
+                    <h2 className="text-xl font-bold text-gray-900">{t('batch.queue.title')}</h2>
                     <div className="flex gap-3">
                       {!processing && files.length > 0 && stats.completed === 0 && (
                         <button
                           onClick={processBatch}
                           className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium"
                         >
-                          Start Analysis
+                          {t('batch.button.start')}
                         </button>
                       )}
                       {batchResults.length > 0 && (
@@ -415,14 +435,14 @@ export default function Home() {
                             className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium flex items-center gap-2"
                           >
                             <Download className="w-4 h-4" />
-                            Export CSV
+                            {t('batch.button.export_csv')}
                           </button>
                           <button
                             onClick={() => exportResults('json')}
                             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2"
                           >
                             <FileText className="w-4 h-4" />
-                            Export JSON
+                            {t('batch.button.export_json')}
                           </button>
                         </>
                       )}
@@ -449,11 +469,11 @@ export default function Home() {
                                 {file.result.prediction}
                               </div>
                               <div className="text-sm text-gray-500 mt-1">
-                                {(file.result.confidence * 100).toFixed(1)}% confidence
+                                {(file.result.confidence * 100).toFixed(1)}% {t('batch.file.confidence')}
                               </div>
                             </div>
                             <div className="text-right">
-                              <div className="text-sm text-gray-500">Processing Time</div>
+                              <div className="text-sm text-gray-500">{t('batch.file.processing_time')}</div>
                               <div className="text-lg font-semibold text-gray-900">
                                 {file.result.processingTime}s
                               </div>
@@ -480,7 +500,7 @@ export default function Home() {
                             />
                           </div>
                           <div className="text-sm text-gray-500 mt-1">
-                            Processing... {file.progress}%
+                            {t('common.processing')}... {file.progress}%
                           </div>
                         </div>
                       )}
@@ -514,20 +534,20 @@ export default function Home() {
               <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl shadow-lg p-8 text-white">
                 <div className="flex items-center gap-3 mb-6">
                   <CheckCircle className="w-8 h-8" />
-                  <h3 className="text-2xl font-bold">Analysis Complete!</h3>
+                  <h3 className="text-2xl font-bold">{t('batch.complete.title')}</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
                     <div className="text-sm opacity-90 mb-1 flex items-center gap-2">
                       <FileText className="w-4 h-4" />
-                      Total Analyzed
+                      {t('batch.complete.analyzed')}
                     </div>
                     <div className="text-4xl font-bold">{batchResults.length}</div>
                   </div>
                   <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
                     <div className="text-sm opacity-90 mb-1 flex items-center gap-2">
                       <BarChart3 className="w-4 h-4" />
-                      Average Confidence
+                      {t('batch.complete.avg_confidence')}
                     </div>
                     <div className="text-4xl font-bold">
                       {(batchResults.reduce((sum, r) => sum + r.confidence, 0) / batchResults.length * 100).toFixed(1)}%
@@ -536,7 +556,7 @@ export default function Home() {
                   <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
                     <div className="text-sm opacity-90 mb-1 flex items-center gap-2">
                       <Clock className="w-4 h-4" />
-                      Total Processing Time
+                      {t('batch.complete.total_time')}
                     </div>
                     <div className="text-4xl font-bold">
                       {batchResults.reduce((sum, r) => sum + parseFloat(r.processingTime), 0).toFixed(1)}s

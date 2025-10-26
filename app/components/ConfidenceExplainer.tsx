@@ -174,6 +174,7 @@ export default function ConfidenceExplainer({
               <div className="space-y-2">
                 {Object.entries(result.model_predictions).map(([model, pred]) => {
                   const maxProb = Math.max(pred.fake_prob, pred.real_prob);
+                  const maxProbPercent = maxProb * 100; // ✅ แปลงเป็น 0-100
                   return (
                     <div key={model} className="flex items-center justify-between text-sm">
                       <span className="text-gray-700 capitalize">{model}</span>
@@ -183,10 +184,10 @@ export default function ConfidenceExplainer({
                             className={`h-2 rounded-full ${
                               pred.prediction === 'FAKE' ? 'bg-red-500' : 'bg-green-500'
                             }`}
-                            style={{ width: `${maxProb}%` }}
+                            style={{ width: `${maxProbPercent}%` }}
                           />
                         </div>
-                        <span className="text-gray-600 w-12 text-right">{maxProb.toFixed(0)}%</span>
+                        <span className="text-gray-600 w-12 text-right">{maxProbPercent.toFixed(0)}%</span>
                       </div>
                     </div>
                   );

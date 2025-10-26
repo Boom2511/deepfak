@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Brain, Upload, FileImage, Target, Zap, Shield } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface ModelPrediction {
   fake_prob: number;
@@ -35,6 +36,7 @@ interface UploaderProps {
 }
 
 export default function ProductionUploader({ onResult }: UploaderProps) {
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
 
@@ -81,6 +83,25 @@ export default function ProductionUploader({ onResult }: UploaderProps) {
       onResult(result);
 
     } catch (error) {
+      let errorMessage = 'Unknown error occurred';
+
+      if (error instanceof Error) {
+        // Parse specific errors
+        if (error.message.includes('No face detected')) {
+          errorMessage = t('error.no_face');
+        } else if (error.message.includes('File too large')) {
+          errorMessage = t('error.file_large');
+        } else if (error.message.includes('Invalid file type')) {
+          errorMessage = t('error.invalid_type');
+        } else if (error.message.includes('Network')) {
+          errorMessage = t('error.network');
+        } else if (error.message.includes('confidence too low')) {
+          errorMessage = t('error.confidence_low');
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
       onResult({
         filename: file.name,
         prediction: 'Error',
@@ -88,7 +109,7 @@ export default function ProductionUploader({ onResult }: UploaderProps) {
         fake_probability: 0,
         real_probability: 0,
         processing_time: 0,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: errorMessage
       });
     } finally {
       setLoading(false);
@@ -133,7 +154,7 @@ export default function ProductionUploader({ onResult }: UploaderProps) {
             <Brain className="w-16 h-16 text-blue-600 mx-auto animate-pulse" />
             <div>
               <p className="text-lg font-medium text-gray-700 mb-2">
-                Analyzing image with AI...
+                {t('upload.analyzing')}
               </p>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
@@ -142,7 +163,7 @@ export default function ProductionUploader({ onResult }: UploaderProps) {
                 />
               </div>
               <p className="text-sm text-gray-500 mt-1">
-                {progress}% complete
+                {progress}% {t('upload.progress')}
               </p>
             </div>
           </div>
@@ -156,19 +177,19 @@ export default function ProductionUploader({ onResult }: UploaderProps) {
             <div>
               <p className="text-lg font-medium text-gray-700 mb-2">
                 {isDragActive
-                  ? 'Drop your image here...'
-                  : 'Upload image for deepfake detection'
+                  ? t('upload.drag')
+                  : t('upload.title')
                 }
               </p>
               <p className="text-sm text-gray-500 mb-4">
-                Supports: JPEG, PNG, GIF, WebP • Max 10MB
+                {t('upload.support')}
               </p>
               <button
                 type="button"
                 className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
               >
                 <Upload className="w-5 h-5 mr-2" />
-                Select Image
+                {t('upload.select')}
               </button>
             </div>
           </div>
@@ -179,18 +200,18 @@ export default function ProductionUploader({ onResult }: UploaderProps) {
       <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="p-4 bg-green-50 rounded-lg border border-green-100">
           <Target className="w-6 h-6 text-green-600 mx-auto mb-2" />
-          <p className="text-sm font-medium text-green-800">High Accuracy</p>
-          <p className="text-xs text-green-600">94%+ detection rate</p>
+          <p className="text-sm font-medium text-green-800">{t('feature.accuracy')}</p>
+          <p className="text-xs text-green-600">{t('feature.accuracy.desc')}</p>
         </div>
         <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
           <Zap className="w-6 h-6 text-blue-600 mx-auto mb-2" />
-          <p className="text-sm font-medium text-blue-800">Fast Processing</p>
-          <p className="text-xs text-blue-600">Results in 2-3 seconds</p>
+          <p className="text-sm font-medium text-blue-800">{t('feature.fast')}</p>
+          <p className="text-xs text-blue-600">{t('feature.fast.desc')}</p>
         </div>
         <div className="p-4 bg-purple-50 rounded-lg border border-purple-100">
           <Shield className="w-6 h-6 text-purple-600 mx-auto mb-2" />
-          <p className="text-sm font-medium text-purple-800">AI Explanation</p>
-          <p className="text-xs text-purple-600">Visual analysis included</p>
+          <p className="text-sm font-medium text-purple-800">{t('feature.explain')}</p>
+          <p className="text-xs text-purple-600">{t('feature.explain.desc')}</p>
         </div>
       </div>
     </div>

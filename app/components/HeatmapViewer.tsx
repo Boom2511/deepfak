@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image'; // Import the Next.js Image component
+import Image from 'next/image';
 import { Zap, Eye } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface HeatmapViewerProps {
   originalImage: string;
@@ -11,6 +12,7 @@ interface HeatmapViewerProps {
 }
 
 export default function HeatmapViewer({ originalImage, heatmapImage, isFake }: HeatmapViewerProps) {
+  const { t } = useLanguage();
 
   return (
     <div className="bg-gradient-to-br from-white to-indigo-50 rounded-xl shadow-lg overflow-hidden border border-indigo-100">
@@ -19,10 +21,10 @@ export default function HeatmapViewer({ originalImage, heatmapImage, isFake }: H
         <div className="mb-6">
           <h3 className="font-bold text-lg sm:text-xl text-gray-900 flex items-center gap-2">
             <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600" />
-            Grad-CAM Attention Heatmap
+            {t('heatmap.gradcam_title')}
           </h3>
           <p className="text-xs sm:text-sm text-gray-600 mt-1">
-            Visual explanation of AI decision-making process
+            {t('heatmap.subtitle')}
           </p>
         </div>
 
@@ -40,7 +42,7 @@ export default function HeatmapViewer({ originalImage, heatmapImage, isFake }: H
                 className="w-full h-auto object-contain"
               />
               <div className="absolute top-2 left-2 px-3 py-1 bg-black bg-opacity-70 text-white text-xs font-medium rounded">
-                Original
+                {t('heatmap.original')}
               </div>
             </div>
             <div className="relative">
@@ -52,7 +54,7 @@ export default function HeatmapViewer({ originalImage, heatmapImage, isFake }: H
                 className="w-full h-auto object-contain"
               />
               <div className="absolute top-2 left-2 px-3 py-1 bg-black bg-opacity-70 text-white text-xs font-medium rounded">
-                Attention Heatmap
+                {t('heatmap.attention')}
               </div>
             </div>
           </div>
@@ -60,34 +62,34 @@ export default function HeatmapViewer({ originalImage, heatmapImage, isFake }: H
 
         {/* Color Legend */}
         <div className="mt-6 bg-white rounded-lg p-4 border border-gray-200">
-          <h4 className="text-sm font-semibold text-gray-900 mb-3">Color Legend</h4>
+          <h4 className="text-sm font-semibold text-gray-900 mb-3">{t('heatmap.legend')}</h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded shadow-inner" style={{ background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)' }}></div>
               <div>
-                <div className="text-xs font-medium text-gray-900">Cool (Blue)</div>
-                <div className="text-xs text-gray-500">Low attention</div>
+                <div className="text-xs font-medium text-gray-900">{t('heatmap.legend.cool')}</div>
+                <div className="text-xs text-gray-500">{t('heatmap.legend.cool.desc')}</div>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded shadow-inner" style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}></div>
               <div>
-                <div className="text-xs font-medium text-gray-900">Green</div>
-                <div className="text-xs text-gray-500">Normal</div>
+                <div className="text-xs font-medium text-gray-900">{t('heatmap.legend.green')}</div>
+                <div className="text-xs text-gray-500">{t('heatmap.legend.green.desc')}</div>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded shadow-inner" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}></div>
               <div>
-                <div className="text-xs font-medium text-gray-900">Yellow</div>
-                <div className="text-xs text-gray-500">Moderate</div>
+                <div className="text-xs font-medium text-gray-900">{t('heatmap.legend.yellow')}</div>
+                <div className="text-xs text-gray-500">{t('heatmap.legend.yellow.desc')}</div>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded shadow-inner" style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)' }}></div>
               <div>
-                <div className="text-xs font-medium text-gray-900">Red</div>
-                <div className="text-xs text-gray-500">High attention</div>
+                <div className="text-xs font-medium text-gray-900">{t('heatmap.legend.red')}</div>
+                <div className="text-xs text-gray-500">{t('heatmap.legend.red.desc')}</div>
               </div>
             </div>
           </div>
@@ -103,40 +105,12 @@ export default function HeatmapViewer({ originalImage, heatmapImage, isFake }: H
             </div>
             <div className="flex-1">
               <h4 className={`font-semibold mb-2 ${isFake ? 'text-red-900' : 'text-green-900'}`}>
-                How to Interpret This Heatmap
+                {t('heatmap.interpret.title')}
               </h4>
               <div className="text-sm text-gray-700 space-y-2">
-                <p>
-                  <strong>What you&apos;re seeing:</strong> This Grad-CAM (Gradient-weighted Class Activation Mapping)
-                  visualization shows which regions of the image were most influential in the AI&apos;s decision.
-                </p>
-                {isFake ? (
-                  <>
-                    <p>
-                      <strong>Red/warm areas:</strong> Regions where the model detected patterns consistent
-                      with AI-generated or manipulated content. These areas showed the strongest signals of manipulation.
-                    </p>
-                    <p>
-                      <strong>Common patterns:</strong> Deepfakes often show artifacts around facial boundaries,
-                      inconsistent lighting, or unnatural texture transitions - look for these in highlighted areas.
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <p>
-                      <strong>Green/cool areas:</strong> The model found natural patterns consistent with
-                      authentic imagery. Attention is distributed normally across facial features.
-                    </p>
-                    <p>
-                      <strong>What&apos;s normal:</strong> Authentic photos typically show even distribution
-                      with slight emphasis on eyes, mouth, and edges - which is what we see here.
-                    </p>
-                  </>
-                )}
-                <p className="pt-2 border-t border-gray-300">
-                  <strong>Note:</strong> This is a visual aid to understand the AI&apos;s reasoning.
-                  The final prediction combines analysis from multiple models and factors.
-                </p>
+                <p>{t('heatmap.interpret.what_seeing')}</p>
+                <p>{t('heatmap.interpret.red_areas')}</p>
+                <p>{t('heatmap.interpret.green_areas')}</p>
               </div>
             </div>
           </div>
@@ -145,14 +119,12 @@ export default function HeatmapViewer({ originalImage, heatmapImage, isFake }: H
         {/* Technical Info (collapsible) */}
         <details className="mt-4">
           <summary className="cursor-pointer text-sm font-medium text-indigo-600 hover:text-indigo-700">
-            Technical Details ▼
+            {t('heatmap.technical.title')} ▼
           </summary>
           <div className="mt-3 text-xs text-gray-600 bg-gray-50 rounded-lg p-4 space-y-1">
-            <p>• <strong>Method:</strong> Grad-CAM (Gradient-weighted Class Activation Mapping)</p>
-            <p>• <strong>Model:</strong> Convolutional Neural Network with attention visualization</p>
-            <p>• <strong>Layer:</strong> Final convolutional layer activations</p>
-            <p>• <strong>Resolution:</strong> 224x224 (upscaled for display)</p>
-            <p>• <strong>Purpose:</strong> Explainable AI - show reasoning behind predictions</p>
+            <p>• {t('heatmap.technical.gradcam')}</p>
+            <p>• {t('heatmap.technical.ensemble')}</p>
+            <p>• {t('heatmap.technical.regions')}</p>
           </div>
         </details>
       </div>

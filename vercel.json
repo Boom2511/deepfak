@@ -1,37 +1,10 @@
 {
-  "version": 2,
-  "name": "deepfake-detection-frontend",
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "outputDirectory": ".next",
-  "regions": ["iad1"],
-  "cleanUrls": true,
-  "trailingSlash": false,
-  "build": {
-    "env": {
-      "NEXT_PUBLIC_API_URL": "https://boom2511-deepfake-detection.hf.space",
-      "NEXT_PUBLIC_WS_URL": "wss://boom2511-deepfake-detection.hf.space"
-    }
-  },
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        }
-      ]
-    }
-  ]
+  "regions": ["sin1"],
+  "env": {
+    "NEXT_PUBLIC_API_URL": "https://your-backend-url.onrender.com"
+  }
 }
