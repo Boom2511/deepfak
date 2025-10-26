@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image'; // Import the Next.js Image component
+import Image from 'next/image';
 import { Upload, Video, Loader, CheckCircle, Film, BarChart3, AlertCircle } from 'lucide-react';
 
 interface VideoResult {
@@ -38,6 +38,8 @@ interface VideoResult {
   };
 }
 
+const API_BASE_URL = 'https://boom2511-deepfake-detection.hf.space';
+
 export default function VideoUploader() {
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -47,6 +49,10 @@ export default function VideoUploader() {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    console.log('[VIDEO] Starting upload for:', file.name);
+    console.log('[VIDEO] File size:', (file.size / (1024 * 1024)).toFixed(2), 'MB');
+    console.log('[VIDEO] File type:', file.type);
 
     // Validate file type
     if (!file.type.startsWith('video/')) {
@@ -66,17 +72,25 @@ export default function VideoUploader() {
     setProgress(0);
 
     try {
+      // Create FormData with only the file
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('frame_skip', '5'); // Process every 5th frame
-      formData.append('max_frames', '100'); // Max 100 frames
+
+      // Build URL with query parameters
+      const url = new URL(`${API_BASE_URL}/api/video/detect`);
+      url.searchParams.append('frame_skip', '5');
+      url.searchParams.append('max_frames', '100');
+
+      console.log('[VIDEO] Request URL:', url.toString());
 
       // Simulate progress
       const progressInterval = setInterval(() => {
-        setProgress(prev => Math.min(prev + 5, 90));
-      }, 500);
+        setProgress(prev => Math.min(prev + 2, 90));
+      }, 1000);
 
-      const response = await fetch('http://localhost:8000/api/video/detect', {
+      console.log('[VIDEO] Sending request...');
+
+      const response = await fetch(url.toString(), {
         method: 'POST',
         body: formData,
       });
@@ -84,15 +98,30 @@ export default function VideoUploader() {
       clearInterval(progressInterval);
       setProgress(100);
 
+      console.log('[VIDEO] Response status:', response.status);
+
       if (!response.ok) {
-        throw new Error('Video processing failed');
+        const errorText = await response.text();
+        console.error('[VIDEO] Error response:', errorText);
+        
+        let errorMessage = 'Video processing failed';
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.detail || errorMessage;
+        } catch {
+          errorMessage = errorText || `HTTP ${response.status}`;
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
+      console.log('[VIDEO] Success! Result:', data);
       setResult(data);
 
-    } catch (err: unknown) { // Changed 'any' to 'unknown' for type safety
+    } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'An error occurred during video processing';
+      console.error('[VIDEO] Error:', message);
       setError(message);
     } finally {
       setIsUploading(false);
@@ -244,8 +273,8 @@ export default function VideoUploader() {
                     <Image
                       src={frame.gradcam}
                       alt={`Frame ${frame.frame_number} heatmap`}
-                      width={300} // Added width prop
-                      height={300} // Added height prop
+                      width={300}
+                      height={300}
                       className="w-full rounded-lg shadow"
                     />
                   )}
@@ -313,7 +342,10 @@ export default function VideoUploader() {
             {error && (
               <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                <div className="text-red-800">{error}</div>
+                <div>
+                  <div className="text-red-800 font-medium">{error}</div>
+                  <div className="text-red-600 text-sm mt-1">Check browser console (F12) for details</div>
+                </div>
               </div>
             )}
 

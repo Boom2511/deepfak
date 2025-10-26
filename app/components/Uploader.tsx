@@ -9,6 +9,7 @@ interface ModelPrediction {
   fake_prob: number;
   real_prob: number;
   prediction: string;
+  confidence: number;
 }
 
 interface DetectionResult {
@@ -35,15 +36,23 @@ interface UploaderProps {
   onResult: (result: DetectionResult | null) => void;
 }
 
+const API_BASE_URL = 'https://boom2511-deepfake-detection.hf.space';
+
 export default function ProductionUploader({ onResult }: UploaderProps) {
   const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   const detectImage = useCallback(async (file: File) => {
     setLoading(true);
     setProgress(0);
+    setError(null);
     onResult(null);
+
+    console.log('[UPLOAD] Starting detection for:', file.name);
+    console.log('[UPLOAD] File size:', (file.size / 1024).toFixed(2), 'KB');
+    console.log('[UPLOAD] File type:', file.type);
 
     try {
       // Create base64 URL for original image
@@ -53,29 +62,55 @@ export default function ProductionUploader({ onResult }: UploaderProps) {
         reader.readAsDataURL(file);
       });
 
+      // Create FormData with only the file
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('include_gradcam', 'true');
+
+      console.log('[UPLOAD] FormData prepared with file:', file.name);
+
+      // Build URL with query parameter
+      const url = new URL(`${API_BASE_URL}/api/detect/image`);
+      url.searchParams.append('generate_heatmap', 'true');
+
+      console.log('[UPLOAD] Request URL:', url.toString());
 
       // Simulate progress for better UX
       const progressInterval = setInterval(() => {
         setProgress(prev => Math.min(prev + 10, 90));
       }, 200);
 
-      const response = await fetch('http://localhost:8000/api/detect/image', {
+      console.log('[UPLOAD] Sending request...');
+
+      const response = await fetch(url.toString(), {
         method: 'POST',
         body: formData,
+        // Don't set Content-Type - browser will set it with boundary
       });
 
       clearInterval(progressInterval);
       setProgress(100);
 
+      console.log('[UPLOAD] Response status:', response.status);
+      console.log('[UPLOAD] Response headers:', Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Detection failed');
+        const errorText = await response.text();
+        console.error('[UPLOAD] Error response:', errorText);
+        
+        let errorMessage = 'Detection failed';
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.detail || errorMessage;
+        } catch {
+          errorMessage = errorText || `HTTP ${response.status}`;
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
+      console.log('[UPLOAD] Success! Result:', result);
+
       const originalImage = await originalImagePromise;
 
       // Add original image to result
@@ -102,6 +137,10 @@ export default function ProductionUploader({ onResult }: UploaderProps) {
         }
       }
 
+      console.error('[UPLOAD] Error:', errorMessage);
+      console.error('[UPLOAD] Full error:', error);
+
+      setError(errorMessage);
       onResult({
         filename: file.name,
         prediction: 'Error',
@@ -120,6 +159,7 @@ export default function ProductionUploader({ onResult }: UploaderProps) {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: (files) => {
       if (files.length > 0) {
+        console.log('[DROPZONE] File dropped:', files[0].name);
         detectImage(files[0]);
       }
     },
@@ -195,6 +235,18 @@ export default function ProductionUploader({ onResult }: UploaderProps) {
           </div>
         )}
       </div>
+
+      {/* Error display */}
+      {error && (
+        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-sm text-red-800">
+            <strong>Error:</strong> {error}
+          </p>
+          <p className="text-xs text-red-600 mt-1">
+            Please check browser console (F12) for more details
+          </p>
+        </div>
+      )}
 
       {/* Features highlight */}
       <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
