@@ -7,6 +7,9 @@ import { useLanguage } from '../contexts/LanguageContext';
 
 interface HeatmapRegion {
   name: string;
+  name_th?: string;
+  name_en?: string;
+  region_id?: string;
   attention: number;
   [key: string]: unknown;
 }
@@ -38,8 +41,8 @@ interface HeatmapViewerProps {
   heatmapAnalysis?: HeatmapAnalysis | null;
 }
 
-export default function HeatmapViewer({ originalImage, heatmapImage, isFake }: HeatmapViewerProps) {
-  const { t } = useLanguage();
+export default function HeatmapViewer({ originalImage, heatmapImage, isFake, heatmapAnalysis }: HeatmapViewerProps) {
+  const { t, language } = useLanguage();
 
   return (
     <div className="bg-gradient-to-br from-white to-indigo-50 rounded-xl shadow-lg overflow-hidden border border-indigo-100">
@@ -121,6 +124,49 @@ export default function HeatmapViewer({ originalImage, heatmapImage, isFake }: H
             </div>
           </div>
         </div>
+
+        {/* Top 3 Suspicious Regions - NEW! */}
+        {heatmapAnalysis && heatmapAnalysis.top_3_regions && heatmapAnalysis.top_3_regions.length > 0 && (
+          <div className="mt-6 bg-gradient-to-br from-orange-50 to-red-50 rounded-lg p-5 border-2 border-orange-200">
+            <h4 className="text-sm font-bold text-orange-900 mb-4 flex items-center gap-2">
+              <Eye className="w-5 h-5" />
+              {language === 'th' ? 'บริเวณที่ตรวจพบความผิดปกติ (Top 3)' : 'Top 3 Suspicious Regions'}
+            </h4>
+            <div className="space-y-3">
+              {heatmapAnalysis.top_3_regions.map((region, idx) => (
+                <div key={idx} className="flex items-center gap-3 bg-white rounded-lg p-3 shadow-sm">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-red-500 text-white font-bold flex items-center justify-center text-sm">
+                    {idx + 1}
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-900 text-sm">
+                      {language === 'th' ? region.name_th || region.name : region.name_en || region.name}
+                    </div>
+                    <div className="text-xs text-gray-600">
+                      {language === 'th' ? 'ความเข้มข้น' : 'Attention'}: {(region.attention * 100).toFixed(1)}%
+                    </div>
+                  </div>
+                  <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-orange-400 to-red-500 rounded-full transition-all"
+                      style={{ width: `${region.attention * 100}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+            {heatmapAnalysis.explanation && (
+              <div className="mt-4 p-3 bg-white rounded-lg border border-orange-200">
+                <p className="text-sm text-gray-700">
+                  {language === 'th'
+                    ? heatmapAnalysis.explanation.summary_th || heatmapAnalysis.explanation.specific_explanation
+                    : heatmapAnalysis.explanation.summary_en || heatmapAnalysis.explanation.specific_explanation
+                  }
+                </p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Detailed Explanation */}
         <div className={`mt-6 rounded-lg p-5 border-2 ${

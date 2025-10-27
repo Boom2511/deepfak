@@ -133,7 +133,7 @@ export default function Home() {
         }, 200);
 
         const startTime = Date.now();
-        const response = await fetch('https://boom2511-deepfake-detection.hf.space', {
+        const response = await fetch('https://boom2511-deepfake-detection.hf.space/api/detect/image?generate_heatmap=true', {
           method: 'POST',
           body: formData,
         });
