@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Zap, Eye } from 'lucide-react';
+import { Zap, Eye, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface HeatmapRegion {
@@ -125,43 +125,115 @@ export default function HeatmapViewer({ originalImage, heatmapImage, isFake, hea
           </div>
         </div>
 
-        {/* Top 3 Suspicious Regions - NEW! */}
+        {/* Top 3 Regions Analysis - Detailed Explanation */}
         {heatmapAnalysis && heatmapAnalysis.top_3_regions && heatmapAnalysis.top_3_regions.length > 0 && (
-          <div className="mt-6 bg-gradient-to-br from-orange-50 to-red-50 rounded-lg p-5 border-2 border-orange-200">
-            <h4 className="text-sm font-bold text-orange-900 mb-4 flex items-center gap-2">
-              <Eye className="w-5 h-5" />
-              {language === 'th' ? 'บริเวณที่ตรวจพบความผิดปกติ (Top 3)' : 'Top 3 Suspicious Regions'}
-            </h4>
-            <div className="space-y-3">
-              {heatmapAnalysis.top_3_regions.map((region, idx) => (
-                <div key={idx} className="flex items-center gap-3 bg-white rounded-lg p-3 shadow-sm">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-red-500 text-white font-bold flex items-center justify-center text-sm">
-                    {idx + 1}
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-900 text-sm">
-                      {language === 'th' ? region.name_th || region.name : region.name_en || region.name}
-                    </div>
-                    <div className="text-xs text-gray-600">
-                      {language === 'th' ? 'ความเข้มข้น' : 'Attention'}: {(region.attention * 100).toFixed(1)}%
-                    </div>
-                  </div>
-                  <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-orange-400 to-red-500 rounded-full transition-all"
-                      style={{ width: `${region.attention * 100}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
+          <div className={`mt-6 rounded-lg p-5 border-2 ${
+            isFake
+              ? 'bg-gradient-to-br from-orange-50 to-red-50 border-orange-200'
+              : 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200'
+          }`}>
+            {/* Header */}
+            <div className="flex items-center gap-3 mb-4">
+              <div className={`p-2 rounded-lg ${isFake ? 'bg-orange-100' : 'bg-green-100'}`}>
+                <Eye className={`w-5 h-5 ${isFake ? 'text-orange-600' : 'text-green-600'}`} />
+              </div>
+              <h4 className={`text-base font-bold ${isFake ? 'text-orange-900' : 'text-green-900'}`}>
+                {language === 'th'
+                  ? (isFake ? 'บริเวณที่ตรวจพบความผิดปกติ (Top 3)' : 'บริเวณที่โมเดลให้ความสนใจ (Top 3)')
+                  : (isFake ? 'Top 3 Suspicious Regions' : 'Top 3 Attention Regions')
+                }
+              </h4>
             </div>
+
+            {/* Summary */}
             {heatmapAnalysis.explanation && (
-              <div className="mt-4 p-3 bg-white rounded-lg border border-orange-200">
-                <p className="text-sm text-gray-700">
+              <div className={`mb-4 p-4 rounded-lg border-2 ${
+                isFake ? 'bg-white border-orange-200' : 'bg-white border-green-200'
+              }`}>
+                <p className="text-sm font-medium text-gray-800 mb-2">
                   {language === 'th'
-                    ? heatmapAnalysis.explanation.summary_th || heatmapAnalysis.explanation.specific_explanation
-                    : heatmapAnalysis.explanation.summary_en || heatmapAnalysis.explanation.specific_explanation
+                    ? heatmapAnalysis.explanation.summary_th
+                    : heatmapAnalysis.explanation.summary_en
                   }
+                </p>
+              </div>
+            )}
+
+            {/* Detailed Region Analysis */}
+            <div className="space-y-3">
+              {heatmapAnalysis.explanation && heatmapAnalysis.explanation.details_th && heatmapAnalysis.explanation.details_th.map((detail, idx) => {
+                const region = heatmapAnalysis.top_3_regions[idx];
+                if (!region) return null;
+
+                // Parse the detail text (format: "🔴 **ตาซ้าย**: ระดับความสนใจ 85.3% - คำอธิบาย...")
+                const detailText = language === 'th' ? detail : detail; // Use same for now, backend only has TH
+
+                // Determine icon based on attention level
+                const attentionLevel = region.attention || 0;
+                const isHighAttention = attentionLevel >= 0.6;
+
+                return (
+                  <div key={idx} className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                    <div className="flex items-start gap-3">
+                      {/* Number Badge */}
+                      <div className={`flex-shrink-0 w-8 h-8 rounded-full text-white font-bold flex items-center justify-center text-sm ${
+                        isFake
+                          ? 'bg-gradient-to-br from-orange-400 to-red-500'
+                          : 'bg-gradient-to-br from-green-400 to-emerald-500'
+                      }`}>
+                        {idx + 1}
+                      </div>
+
+                      {/* Region Info */}
+                      <div className="flex-1 min-w-0">
+                        {/* Region Name */}
+                        <div className="flex items-center gap-2 mb-2">
+                          {isFake && isHighAttention ? (
+                            <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0" />
+                          ) : (
+                            <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                          )}
+                          <span className="font-semibold text-gray-900">
+                            {language === 'th' ? region.name_th || region.name : region.name_en || region.name}
+                          </span>
+                        </div>
+
+                        {/* Attention Bar */}
+                        <div className="mb-2">
+                          <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+                            <span>{language === 'th' ? 'ระดับความสนใจ' : 'Attention Level'}</span>
+                            <span className="font-semibold">{(attentionLevel * 100).toFixed(1)}%</span>
+                          </div>
+                          <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${
+                                isFake
+                                  ? 'bg-gradient-to-r from-orange-400 to-red-500'
+                                  : 'bg-gradient-to-r from-green-400 to-emerald-500'
+                              }`}
+                              style={{ width: `${attentionLevel * 100}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Explanation Text */}
+                        <p className="text-xs text-gray-700 leading-relaxed">
+                          {detailText.replace(/^[🔴⚠️✅]\s*\*\*[^*]+\*\*:\s*[^-]+-\s*/, '')}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Specific Explanation */}
+            {heatmapAnalysis.explanation && heatmapAnalysis.explanation.specific_explanation && (
+              <div className={`mt-4 p-3 rounded-lg border ${
+                isFake ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'
+              }`}>
+                <p className="text-xs text-gray-700 italic">
+                  💡 {heatmapAnalysis.explanation.specific_explanation}
                 </p>
               </div>
             )}
