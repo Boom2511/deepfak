@@ -6,7 +6,7 @@ import ProductionUploader from './components/Uploader';
 import ResultDisplay from './components/ResultDisplay';
 import UploadAssistant from './components/UploadAssistant';
 import VideoUploader from './components/VideoUploader';
-import WebcamDetector from './components/WebcamDetector';
+// import WebcamDetector from './components/WebcamDetector'; // Not used yet
 import LanguageSwitcher from './components/LanguageSwitcher';
 import { useLanguage } from './contexts/LanguageContext';
 

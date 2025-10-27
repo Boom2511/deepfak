@@ -154,7 +154,7 @@ export default function ProductionUploader({ onResult }: UploaderProps) {
       setLoading(false);
       setProgress(0);
     }
-  }, [onResult]);
+  }, [onResult, t]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: (files) => {

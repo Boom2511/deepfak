@@ -13,11 +13,17 @@ interface ModelPrediction {
   prediction: string;
 }
 
+interface HeatmapRegion {
+  name: string;
+  attention: number;
+  [key: string]: unknown;
+}
+
 interface HeatmapAnalysis {
   is_fake: boolean;
-  regions: any[];
-  suspicious_regions: any[];
-  top_3_regions: any[];
+  regions: HeatmapRegion[];
+  suspicious_regions: HeatmapRegion[];
+  top_3_regions: HeatmapRegion[];
   explanation: {
     summary_th: string;
     summary_en: string;
