@@ -17,6 +17,12 @@ interface HeatmapRegion {
   [key: string]: unknown;
 }
 
+interface RegionDetail {
+  region: string;
+  attention: number;
+  explanation: string;
+}
+
 interface HeatmapAnalysis {
   is_fake: boolean;
   regions: HeatmapRegion[];
@@ -25,8 +31,11 @@ interface HeatmapAnalysis {
   explanation: {
     summary_th: string;
     summary_en: string;
-    details_th: string[];
-    specific_explanation: string;
+    details_th: RegionDetail[] | string[]; // Support both new and old format
+    details_en?: RegionDetail[];
+    specific_explanation_th?: string;
+    specific_explanation_en?: string;
+    specific_explanation?: string; // Backward compatibility
   };
   hotspot: {
     x: number;
@@ -173,17 +182,25 @@ export default function HeatmapViewer({ originalImage, heatmapImage, isFake, hea
                 const regionNameTh = region.region_name_th || region.name_th || region.name;
                 const regionNameEn = region.region_name_en || region.name_en || region.name;
 
-                // Get explanation from details_th array if available
-                const detailExplanation = heatmapAnalysis.explanation?.details_th?.[idx];
-
-                // Parse explanation text (remove emoji and markdown formatting)
+                // Get explanation - support both new object format and old string format
                 let explanationText = '';
-                if (detailExplanation) {
-                  // Extract the explanation part after the dash
-                  const match = detailExplanation.match(/-\s*(.+)$/);
-                  explanationText = match ? match[1] : detailExplanation;
-                  // Remove any remaining markdown
-                  explanationText = explanationText.replace(/\*\*/g, '');
+                const details = language === 'th'
+                  ? heatmapAnalysis.explanation?.details_th
+                  : heatmapAnalysis.explanation?.details_en || heatmapAnalysis.explanation?.details_th;
+
+                if (details && details[idx]) {
+                  const detail = details[idx];
+
+                  // Check if new format (object with explanation field)
+                  if (typeof detail === 'object' && 'explanation' in detail) {
+                    explanationText = detail.explanation;
+                  }
+                  // Old format (string with emoji and markdown)
+                  else if (typeof detail === 'string') {
+                    const match = detail.match(/-\s*(.+)$/);
+                    explanationText = match ? match[1] : detail;
+                    explanationText = explanationText.replace(/\*\*/g, '');
+                  }
                 }
 
                 return (
@@ -244,12 +261,15 @@ export default function HeatmapViewer({ originalImage, heatmapImage, isFake, hea
             </div>
 
             {/* Specific Explanation */}
-            {heatmapAnalysis.explanation && heatmapAnalysis.explanation.specific_explanation && (
+            {heatmapAnalysis.explanation && (
               <div className={`mt-4 p-3 rounded-lg border ${
                 isFake ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'
               }`}>
-                <p className="text-xs text-gray-700 italic">
-                  💡 {heatmapAnalysis.explanation.specific_explanation}
+                <p className="text-xs text-gray-700 leading-relaxed">
+                  {language === 'th'
+                    ? heatmapAnalysis.explanation.specific_explanation_th || heatmapAnalysis.explanation.specific_explanation
+                    : heatmapAnalysis.explanation.specific_explanation_en || heatmapAnalysis.explanation.specific_explanation
+                  }
                 </p>
               </div>
             )}
