@@ -10,7 +10,10 @@ interface HeatmapRegion {
   name_th?: string;
   name_en?: string;
   region_id?: string;
-  attention: number;
+  region_name_th?: string;
+  region_name_en?: string;
+  avg_attention?: number;
+  attention?: number;
   [key: string]: unknown;
 }
 
@@ -161,16 +164,27 @@ export default function HeatmapViewer({ originalImage, heatmapImage, isFake, hea
 
             {/* Detailed Region Analysis */}
             <div className="space-y-3">
-              {heatmapAnalysis.explanation && heatmapAnalysis.explanation.details_th && heatmapAnalysis.explanation.details_th.map((detail, idx) => {
-                const region = heatmapAnalysis.top_3_regions[idx];
-                if (!region) return null;
-
-                // Parse the detail text (format: "🔴 **ตาซ้าย**: ระดับความสนใจ 85.3% - คำอธิบาย...")
-                const detailText = language === 'th' ? detail : detail; // Use same for now, backend only has TH
-
-                // Determine icon based on attention level
-                const attentionLevel = region.attention || 0;
+              {heatmapAnalysis.top_3_regions.map((region, idx) => {
+                // Get attention level from backend (avg_attention is the correct field)
+                const attentionLevel = region.avg_attention || region.attention || 0;
                 const isHighAttention = attentionLevel >= 0.6;
+
+                // Get region name
+                const regionNameTh = region.region_name_th || region.name_th || region.name;
+                const regionNameEn = region.region_name_en || region.name_en || region.name;
+
+                // Get explanation from details_th array if available
+                const detailExplanation = heatmapAnalysis.explanation?.details_th?.[idx];
+
+                // Parse explanation text (remove emoji and markdown formatting)
+                let explanationText = '';
+                if (detailExplanation) {
+                  // Extract the explanation part after the dash
+                  const match = detailExplanation.match(/-\s*(.+)$/);
+                  explanationText = match ? match[1] : detailExplanation;
+                  // Remove any remaining markdown
+                  explanationText = explanationText.replace(/\*\*/g, '');
+                }
 
                 return (
                   <div key={idx} className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
@@ -194,17 +208,17 @@ export default function HeatmapViewer({ originalImage, heatmapImage, isFake, hea
                             <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
                           )}
                           <span className="font-semibold text-gray-900">
-                            {language === 'th' ? region.name_th || region.name : region.name_en || region.name}
+                            {language === 'th' ? regionNameTh : regionNameEn}
                           </span>
                         </div>
 
                         {/* Attention Bar */}
-                        <div className="mb-2">
+                        <div className="mb-3">
                           <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
                             <span>{language === 'th' ? 'ระดับความสนใจ' : 'Attention Level'}</span>
                             <span className="font-semibold">{(attentionLevel * 100).toFixed(1)}%</span>
                           </div>
-                          <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <div className="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
                             <div
                               className={`h-full rounded-full transition-all ${
                                 isFake
@@ -217,9 +231,11 @@ export default function HeatmapViewer({ originalImage, heatmapImage, isFake, hea
                         </div>
 
                         {/* Explanation Text */}
-                        <p className="text-xs text-gray-700 leading-relaxed">
-                          {detailText.replace(/^[🔴⚠️✅]\s*\*\*[^*]+\*\*:\s*[^-]+-\s*/, '')}
-                        </p>
+                        {explanationText && (
+                          <p className="text-xs text-gray-700 leading-relaxed bg-gray-50 p-2 rounded">
+                            {explanationText}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
