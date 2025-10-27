@@ -5,10 +5,37 @@ import Image from 'next/image';
 import { Zap, Eye } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
+interface HeatmapRegion {
+  name: string;
+  attention: number;
+  [key: string]: unknown;
+}
+
+interface HeatmapAnalysis {
+  is_fake: boolean;
+  regions: HeatmapRegion[];
+  suspicious_regions: HeatmapRegion[];
+  top_3_regions: HeatmapRegion[];
+  explanation: {
+    summary_th: string;
+    summary_en: string;
+    details_th: string[];
+    specific_explanation: string;
+  };
+  hotspot: {
+    x: number;
+    y: number;
+    value: number;
+  };
+  overall_attention: number;
+  max_attention_value: number;
+}
+
 interface HeatmapViewerProps {
   originalImage: string;
   heatmapImage: string;
   isFake: boolean;
+  heatmapAnalysis?: HeatmapAnalysis | null;
 }
 
 export default function HeatmapViewer({ originalImage, heatmapImage, isFake }: HeatmapViewerProps) {
